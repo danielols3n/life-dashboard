@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { defineTool, ToolConfigError } from "./registry.ts";
+import { journeyPlanner } from "./entur.ts";
 
 const QUERY = `query($id: String!, $n: Int!) {
   stopPlace(id: $id) {
@@ -28,6 +29,7 @@ export type Departure = {
 };
 
 export type TransitResult = {
+  stopId: string;
   stop: string;
   departures: Departure[];
 };
@@ -45,27 +47,17 @@ export const transit = defineTool({
     const id = stopId ?? ctx.config.homeStopId;
     if (!id) {
       throw new ToolConfigError(
-        "Ingen holdeplass er valgt. Sett HOME_STOP_ID i apps/web/.env.local.",
+        "Ingen holdeplass er valgt. Sett HOME_STOP_ID i .env i hovedmappen.",
       );
     }
 
-    const res = await fetch("https://api.entur.io/journeyplanner/v3/graphql", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "ET-Client-Name": "danielols3n-lifedashboard",
-      },
-      body: JSON.stringify({ query: QUERY, variables: { id, n: count } }),
-    });
-    if (!res.ok) throw new Error(`Entur svarte ${res.status}`);
-
-    const { data, errors } = await res.json();
-    if (errors?.length) throw new Error(`Entur: ${errors[0].message}`);
+    const data = await journeyPlanner(QUERY, { id, n: count });
     if (!data?.stopPlace) {
       throw new ToolConfigError(`Fant ingen holdeplass med ID ${id}.`);
     }
 
     return {
+      stopId: id,
       stop: data.stopPlace.name,
       departures: data.stopPlace.estimatedCalls.map((c: any) => ({
         line: c.serviceJourney.line.publicCode,

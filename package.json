@@ -1,11 +1,14 @@
 {
   "name": "life-dashboard",
   "private": true,
-  "packageManager": "pnpm@10.28.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "pnpm --filter web dev",
-    "build": "pnpm --filter web build",
-    "start": "pnpm --filter web start",
-    "typecheck": "pnpm -r typecheck"
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "start": "npm run start -w web",
+    "typecheck": "npm run typecheck --workspaces"
   }
 }

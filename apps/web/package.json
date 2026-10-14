@@ -2,24 +2,32 @@
   "name": "web",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "dev": "react-router dev",
+    "build": "react-router build",
+    "start": "react-router-serve ./build/server/index.js",
+    "typecheck": "react-router typegen && tsc --noEmit"
   },
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",
-    "@life/tools": "workspace:*",
-    "next": "^16.4.0",
+    "@life/tools": "*",
+    "@react-router/node": "^7.18.4",
+    "@react-router/serve": "^7.18.4",
+    "isbot": "^5.1.44",
+    "leaflet": "^1.9.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-router": "^7.18.4",
     "zod": "^4.1.0"
   },
   "devDependencies": {
+    "@react-router/dev": "^7.18.4",
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^22.0.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "vite": "^6.4.4"
   }
 }

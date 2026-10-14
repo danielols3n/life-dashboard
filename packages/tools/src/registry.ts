@@ -10,6 +10,12 @@ export type ToolContext = {
     homeStopId?: string;
     homeLat: number;
     homeLon: number;
+    /** IMAP-konto for innboksen. Mangler når e-post ikke er satt opp. */
+    mail?: { host: string; port: number; user: string; password: string };
+    /** Hemmelige iCal-adresser til kalenderne. Tom når kalender ikke er satt opp. */
+    calendars?: string[];
+    /** Adressen tømmekalenderen gjelder, slik den står hos BIR */
+    wasteAddress?: string;
   };
 };
 

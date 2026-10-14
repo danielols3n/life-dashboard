@@ -1,0 +1,1628 @@
+/*
+  Fjordtåke (lyst) og kveld (mørkt).
+  Rødt og blått for temperatur over og under null, som på Yr.
+*/
+:root {
+  --bg: #e6ebec;
+  --board: #f5f8f8;
+  --ink: #1d2b2f;
+  --muted: #56676b;
+  --rule: #c7d1d3;
+  --rain: #2c6bb3;
+  --plus: #c0392b;
+  --minus: #2c6bb3;
+  --night: rgba(29, 43, 47, 0.05);
+  --cal-0: #2c6bb3;
+  --cal-1: #2e8b57;
+  --cal-2: #b86e0c;
+  --cal-3: #8e44ad;
+  --tile-filter: none;
+  --focus: #2c6bb3;
+
+  --font: "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
+  --gap: clamp(16px, 2.6vw, 44px);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #142024;
+    --board: #1c2b30;
+    --ink: #e1e9ea;
+    --muted: #94a7ab;
+    --rule: #2d4148;
+    --rain: #6ea7df;
+    --plus: #f08068;
+    --minus: #7fb4e8;
+    --night: rgba(0, 0, 0, 0.22);
+    --cal-0: #7fb4e8;
+    --cal-1: #6cc995;
+    --cal-2: #f0b45a;
+    --cal-3: #c39be0;
+    --tile-filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.85);
+    --focus: #7fb4e8;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #142024;
+  --board: #1c2b30;
+  --ink: #e1e9ea;
+  --muted: #94a7ab;
+  --rule: #2d4148;
+  --rain: #6ea7df;
+  --plus: #f08068;
+  --minus: #7fb4e8;
+  --night: rgba(0, 0, 0, 0.22);
+  --cal-0: #7fb4e8;
+  --cal-1: #6cc995;
+  --cal-2: #f0b45a;
+  --cal-3: #c39be0;
+  --tile-filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.85);
+  --focus: #7fb4e8;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: clamp(16px, 1.15vw, 21px);
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+p {
+  margin: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ---------- Rutenett ---------- */
+
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: var(--gap);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Oversikten: vær til venstre, avganger og e-post til høyre */
+.overview {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+  gap: var(--gap) calc(var(--gap) * 1.5);
+  align-items: start;
+}
+
+.overview > .weather {
+  grid-area: 1 / 1;
+}
+
+.overview > .calendar {
+  grid-area: 2 / 1 / span 2;
+}
+
+.overview > .transit {
+  grid-area: 1 / 2;
+}
+
+.overview > .waste {
+  grid-area: 2 / 2;
+}
+
+.overview > .mail {
+  grid-area: 3 / 2;
+}
+
+/* Sidene for hver widget */
+.page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.travel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: var(--gap);
+  align-items: start;
+}
+
+.error-page {
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+}
+
+.error-page h1 {
+  margin: 0;
+  font-weight: 400;
+  font-size: 2.4rem;
+}
+
+/* ---------- Klokke ---------- */
+
+.clock {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  flex-wrap: wrap;
+}
+
+.clock-time {
+  font-size: clamp(2.6rem, 5.4vw, 5.6rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.clock-date {
+  font-size: clamp(1.05rem, 1.6vw, 1.6rem);
+  color: var(--muted);
+}
+
+.clock-date::first-letter {
+  text-transform: uppercase;
+}
+
+/* Mindre klokke på sidene for hver widget */
+.shell:not([data-overview]) .clock-time {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 400;
+}
+
+.shell:not([data-overview]) .clock-date {
+  font-size: 1rem;
+}
+
+/* ---------- Navbar ---------- */
+
+.nav {
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--board);
+}
+
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.nav-link:hover {
+  color: var(--ink);
+}
+
+.nav-link.active {
+  background: var(--ink);
+  color: var(--board);
+  /* Pillen glir over til den nye fanen ved sidebytte (View Transitions) */
+  view-transition-name: nav-pill;
+}
+
+.nav-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--plus);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+::view-transition-group(nav-pill) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.18s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+.subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.subnav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.subnav-link:hover {
+  color: var(--ink);
+  border-color: var(--muted);
+}
+
+.subnav-link.active {
+  border-color: var(--ink);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/* ---------- Knapper ---------- */
+
+.icon {
+  flex: none;
+}
+
+.pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pick:hover {
+  border-color: var(--muted);
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  border-color: var(--muted);
+}
+
+.icon-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.theme:hover {
+  color: var(--ink);
+  border-color: var(--muted);
+}
+
+/* ---------- Felles for widgets ---------- */
+
+.widget-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 0.9em;
+}
+
+.widget-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.widget-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.widget-link .icon {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.widget-link:hover {
+  color: var(--ink);
+}
+
+.widget-link:hover .icon,
+.widget-link:focus-visible .icon {
+  opacity: 1;
+  transform: none;
+}
+
+.widget-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(18px, 2vw, 32px);
+  background: var(--board);
+  border-radius: 22px;
+}
+
+.quiet {
+  color: var(--muted);
+}
+
+.notice {
+  max-width: 34em;
+  padding: 0.8em 1em;
+  border-left: 3px solid var(--plus);
+  background: var(--board);
+  border-radius: 0 8px 8px 0;
+}
+
+.source {
+  margin-top: auto;
+  padding-top: 1.2em;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* ---------- Vær ---------- */
+
+.weather {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.now {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(16px, 2.4vw, 40px);
+}
+
+.now-temp {
+  font-size: clamp(6rem, 13vw, 13.5rem);
+  font-weight: 250;
+  line-height: 0.82;
+  letter-spacing: -0.045em;
+  color: var(--plus);
+}
+
+.now-temp[data-sign="minus"] {
+  color: var(--minus);
+}
+
+.now-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  max-width: 24em;
+  padding-top: 0.4em;
+}
+
+.now-symbol {
+  font-size: clamp(1.5rem, 2.4vw, 2.4rem);
+  font-weight: 600;
+  line-height: 1.1;
+  margin-bottom: 0.15em;
+}
+
+.meteogram {
+  margin: clamp(20px, 3vw, 48px) 0 0;
+}
+
+.meteogram svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.mg-night {
+  fill: var(--night);
+}
+
+.mg-base {
+  stroke: var(--rule);
+  stroke-width: 1.5;
+}
+
+.mg-rain {
+  fill: var(--rain);
+}
+
+.mg-rain-label {
+  fill: var(--rain);
+  font-size: 13px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.mg-temp {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mg-dot {
+  fill: var(--bg);
+  stroke-width: 2.5;
+}
+
+.mg-temp-label {
+  fill: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.mg-hour {
+  fill: var(--muted);
+  font-size: 14px;
+  text-anchor: middle;
+}
+
+/* ---------- Avganger ---------- */
+
+.departures {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dep {
+  display: grid;
+  grid-template-columns: 3.4em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9em;
+  padding: 0.7em 0;
+}
+
+.dep + .dep {
+  border-top: 1px solid var(--rule);
+}
+
+.dep-line {
+  display: inline-grid;
+  place-items: center;
+  min-height: 2em;
+  padding: 0 0.4em;
+  border-radius: 7px;
+  background: var(--ink);
+  color: var(--board);
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
+/* Bybanen får pilleform, så bane og buss skilles på et blikk */
+.dep-line[data-mode="tram"] {
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2.5px var(--ink);
+}
+
+.dep-to {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 1.15em;
+  font-weight: 500;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.dep-note {
+  font-size: 0.72em;
+  font-weight: 400;
+  color: var(--plus);
+  margin-top: 0.2em;
+}
+
+.dep-when {
+  font-size: 1.55em;
+  font-weight: 650;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.dep[data-soon] .dep-when {
+  font-weight: 800;
+}
+
+.dep-ca {
+  font-size: 0.55em;
+  font-weight: 400;
+  color: var(--muted);
+  margin-right: 0.3em;
+}
+
+.dep[data-cancelled] .dep-when,
+.dep[data-cancelled] .dep-to > :first-child {
+  color: var(--muted);
+}
+
+.dep[data-cancelled] .dep-when {
+  text-decoration: line-through;
+  font-weight: 400;
+}
+
+/* ---------- Stedsvelger ---------- */
+
+.picker {
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(680px, calc(100dvh - 32px));
+  padding: 20px;
+  border: 1px solid var(--rule);
+  border-radius: 22px;
+  background: var(--board);
+  color: var(--ink);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+
+.picker[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.picker::backdrop {
+  background: rgba(10, 20, 24, 0.45);
+  backdrop-filter: blur(3px);
+}
+
+.picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.picker-head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.picker-options,
+.results ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.results {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--bg);
+}
+
+.option[aria-pressed="true"] {
+  border-color: var(--ink);
+}
+
+.option > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.option small {
+  color: var(--muted);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.search:focus-within {
+  border-color: var(--focus);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+}
+
+/* ---------- Reiseplanlegger ---------- */
+
+.planner-ends {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+}
+
+.end {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.end-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.end-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.end-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.end-button:hover {
+  border-color: var(--muted);
+}
+
+.swap {
+  margin-bottom: 2px;
+}
+
+.planner-when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+}
+
+.segmented button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--board);
+}
+
+.time-input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+}
+
+.trips,
+.legs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trip + .trip {
+  border-top: 1px solid var(--rule);
+}
+
+.trip summary {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 0.8em 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.trip summary::-webkit-details-marker {
+  display: none;
+}
+
+.trip-times {
+  font-size: 1.3em;
+  font-weight: 650;
+}
+
+.trip-duration {
+  color: var(--muted);
+}
+
+.trip-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85em;
+}
+
+.trip-summary {
+  grid-column: 1 / -1;
+  font-size: 0.9em;
+  color: var(--muted);
+}
+
+.trip[data-cancelled] .trip-summary {
+  color: var(--plus);
+}
+
+.leg-walk {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+.legs {
+  padding: 0 0 1em;
+}
+
+.leg {
+  display: grid;
+  grid-template-columns: 3.2em 3.4em minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 0.45em 0;
+}
+
+.leg-time {
+  font-weight: 600;
+}
+
+.leg .dep-line {
+  font-size: 0.95em;
+  justify-self: start;
+}
+
+.leg-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.leg-text small {
+  color: var(--muted);
+}
+
+.leg[data-cancelled] .leg-text strong {
+  text-decoration: line-through;
+}
+
+/* ---------- E-post ---------- */
+
+.messages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.msg + .msg {
+  border-top: 1px solid var(--rule);
+}
+
+.msg-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  padding: 0.65em 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.msg-body:hover .msg-subject {
+  text-decoration: underline;
+}
+
+.msg-from {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg[data-unread] .msg-from {
+  font-weight: 700;
+}
+
+.msg-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--rain);
+}
+
+.msg-time {
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+.msg-subject {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.msg[data-unread] .msg-subject {
+  color: var(--ink);
+}
+
+/* ---------- Kalender ---------- */
+
+.cal-day + .cal-day {
+  margin-top: 1em;
+}
+
+.cal-day-title {
+  margin: 0 0 0.3em;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+.cal-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cal-event {
+  display: grid;
+  grid-template-columns: 5.2em 10px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 0.55em 0;
+}
+
+.cal-event + .cal-event {
+  border-top: 1px solid var(--rule);
+}
+
+.cal-time {
+  display: flex;
+  flex-direction: column;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.cal-time small {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.cal-event[data-ongoing] .cal-time {
+  color: var(--plus);
+}
+
+.cal-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 0.45em;
+  border-radius: 50%;
+  background: var(--cal-0);
+}
+
+.cal-dot[data-calendar="1"] {
+  background: var(--cal-1);
+}
+
+.cal-dot[data-calendar="2"] {
+  background: var(--cal-2);
+}
+
+.cal-dot[data-calendar="3"] {
+  background: var(--cal-3);
+}
+
+.cal-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cal-text small {
+  color: var(--muted);
+}
+
+/* ---------- Langtidsvarsel ---------- */
+
+.weather-icon {
+  display: block;
+  flex: none;
+}
+
+/* Oversikten: de neste dagene på én rad */
+.lf-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 6px;
+  margin: clamp(16px, 2vw, 28px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lf-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  background: var(--board);
+}
+
+.lf-cell-day {
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.lf-cell-temp {
+  display: flex;
+  gap: 6px;
+  font-weight: 650;
+}
+
+.lf-cell-rain {
+  font-size: 0.75rem;
+  color: var(--rain);
+}
+
+[data-sign="plus"] {
+  color: var(--plus);
+}
+
+[data-sign="minus"] {
+  color: var(--minus);
+}
+
+/* Værsiden: én rad per dag, med temperaturstolper på felles skala */
+.lf {
+  margin-top: clamp(20px, 3vw, 40px);
+}
+
+.lf-title {
+  margin: 0 0 0.4em;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.lf-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lf-row {
+  display: grid;
+  grid-template-columns: 11em 44px minmax(0, 1fr) minmax(160px, 1.3fr) 5em 4.5em;
+  align-items: center;
+  gap: 14px;
+  padding: 0.35em 0;
+}
+
+.lf-row + .lf-row {
+  border-top: 1px solid var(--rule);
+}
+
+.lf-day {
+  font-weight: 650;
+}
+
+.lf-day-short {
+  display: none;
+}
+
+.lf-desc {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.lf-temps {
+  display: grid;
+  grid-template-columns: 2.6em minmax(0, 1fr) 2.6em;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+}
+
+.lf-min {
+  text-align: right;
+}
+
+.lf-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg);
+}
+
+.lf-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--plus);
+}
+
+.lf-bar[data-range="minus"] {
+  background: var(--minus);
+}
+
+.lf-bar[data-range="cross"] {
+  background: linear-gradient(90deg, var(--minus), var(--plus));
+}
+
+.lf-rain {
+  color: var(--rain);
+  font-weight: 600;
+  text-align: right;
+}
+
+.lf-rain[data-dry] {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.lf-wind {
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---------- Regn neste 90 minutter ---------- */
+
+.rain-now {
+  margin-top: 0.6em;
+  padding: 0.7em 0.9em 0.6em;
+  border-radius: 14px;
+  background: var(--board);
+}
+
+.rain-message {
+  font-weight: 600;
+}
+
+.rain-now[data-tone="soon"] .rain-message,
+.rain-now[data-tone="wet"] .rain-message {
+  color: var(--rain);
+}
+
+.rain-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 34px;
+  margin-top: 0.5em;
+  border-bottom: 1px solid var(--rule);
+}
+
+.rain-bar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  background: var(--rule);
+}
+
+.rain-bar[data-wet] {
+  background: var(--rain);
+}
+
+.rain-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.rain-note {
+  margin-top: 0.4em;
+  font-size: 0.9em;
+}
+
+/* ---------- Tømming ---------- */
+
+.waste-alert {
+  margin-bottom: 0.8em;
+  padding: 0.6em 0.9em;
+  border-radius: 12px;
+  background: var(--bg);
+  border-left: 4px solid var(--plus);
+}
+
+.waste-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.waste-row {
+  display: grid;
+  /* Fast bredde, så avfallstypene står på linje under hverandre */
+  grid-template-columns: 12em minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 0.55em 0;
+}
+
+.waste-row + .waste-row {
+  border-top: 1px solid var(--rule);
+}
+
+.waste-day {
+  display: flex;
+  flex-direction: column;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.waste-day small {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.waste-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Farger omtrent som spannene hos BIR */
+.waste-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.waste-chip::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.waste-chip[data-waste="matavfall"]::before {
+  background: var(--cal-1);
+}
+
+.waste-chip[data-waste="papirOgPlast"]::before {
+  background: var(--cal-0);
+}
+
+.waste-chip[data-waste="glassOgMetall"]::before {
+  background: var(--cal-2);
+}
+
+.waste-chip[data-waste="plastemballasje"]::before {
+  background: var(--cal-3);
+}
+
+/* ---------- Holdeplasskart ---------- */
+
+.picker.picker-wide {
+  width: min(900px, calc(100vw - 32px));
+  height: min(820px, calc(100dvh - 32px));
+  max-height: none;
+}
+
+.picker .segmented {
+  align-self: flex-start;
+}
+
+/* I dialogen fyller kartet høyden som er igjen */
+.picker .stop-map {
+  flex: 1;
+  min-height: 0;
+}
+
+.picker .stop-map-canvas {
+  flex: 1;
+  height: auto;
+  min-height: 240px;
+}
+
+.stop-map {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stop-map-canvas {
+  height: min(60dvh, 520px);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.map-card .stop-map-canvas {
+  height: min(70dvh, 720px);
+}
+
+.stop-map-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Leaflet-punktene får farge fra temaet; SVG-attributter kan ikke bruke var() */
+.stop-marker {
+  fill: var(--board);
+  stroke: var(--ink);
+}
+
+.stop-marker.stop-tram {
+  fill: var(--ink);
+}
+
+.stop-marker.stop-selected {
+  fill: var(--plus);
+  stroke: var(--board);
+}
+
+.stop-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+  font: 15px/1.35 var(--font);
+}
+
+.stop-popup small {
+  color: var(--muted);
+}
+
+.stop-popup .pick {
+  margin-top: 6px;
+  justify-content: center;
+}
+
+.leaflet-tile-pane {
+  filter: var(--tile-filter);
+}
+
+/* Med .leaflet-container foran, så de vinner over leaflet.css som lastes etter */
+.leaflet-container .leaflet-popup-content-wrapper,
+.leaflet-container .leaflet-popup-tip,
+.leaflet-container .leaflet-tooltip {
+  background: var(--board);
+  color: var(--ink);
+}
+
+.leaflet-container .leaflet-tooltip {
+  border-color: var(--rule);
+  font: 600 14px/1.3 var(--font);
+}
+
+.leaflet-container .leaflet-bar a {
+  background: var(--board);
+  color: var(--ink);
+  border-color: var(--rule);
+}
+
+.leaflet-container .leaflet-bar a:hover {
+  background: var(--bg);
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--muted);
+}
+
+/* ---------- Mellomstor skjerm ---------- */
+
+@media (max-width: 1100px) {
+  .travel-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nav-link {
+    padding: 0 14px;
+  }
+}
+
+/* ---------- Smal skjerm ---------- */
+
+@media (max-width: 860px) {
+  .shell {
+    padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
+    gap: 24px;
+  }
+
+  .overview {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .overview > * {
+    grid-area: auto !important;
+  }
+
+  /* Navbaren blir en flytende fanelinje nederst, innen rekkevidde for tommelen */
+  .nav {
+    position: fixed;
+    z-index: 10;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    justify-content: space-around;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  }
+
+  .nav-link {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 54px;
+    padding: 0 4px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+  }
+
+  .nav-badge {
+    position: absolute;
+    top: 4px;
+    left: calc(50% + 6px);
+  }
+
+  .planner-ends {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .planner-ends .end:last-child {
+    grid-column: 1;
+  }
+
+  .swap {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    align-self: center;
+  }
+
+  .trip summary {
+    grid-template-columns: auto 1fr;
+  }
+
+  .trip-chain {
+    grid-column: 1 / -1;
+  }
+
+  .waste-row {
+    grid-template-columns: 9.5em minmax(0, 1fr);
+  }
+
+  /* Smal skjerm: dag og ikon på venstre side, temperatur og nedbør til høyre */
+  .lf-row {
+    grid-template-columns: 4.6em 34px minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .lf-day-long {
+    display: none;
+  }
+
+  .lf-day-short {
+    display: inline;
+    white-space: nowrap;
+  }
+
+  .lf-temps {
+    grid-template-columns: 2.2em minmax(24px, 1fr) 2.2em;
+    gap: 6px;
+  }
+
+  .lf-rain {
+    white-space: nowrap;
+    min-width: 3.6em;
+  }
+
+  .lf-row .weather-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .lf-desc,
+  .lf-wind {
+    display: none;
+  }
+
+  .lf-strip {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .now {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .theme span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .theme {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+}
